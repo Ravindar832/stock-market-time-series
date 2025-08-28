@@ -8,9 +8,7 @@ def prepare_prophet_data(df, column='Close'):
     """
     Prepare data for Prophet model.
 
-    Args:
-        df (pd.DataFrame): DataFrame with datetime index
-        column (str): Target column for forecasting (default: 'Close')
+    
 
     Returns:
         pd.DataFrame: Reformatted DataFrame with 'ds' and 'y' columns
