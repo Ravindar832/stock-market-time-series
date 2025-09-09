@@ -1,11 +1,18 @@
 import numpy as np
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dense
+from keras.models import Sequential
+from keras.layers import LSTM, Dense
 from sklearn.preprocessing import MinMaxScaler
+
+import os
+
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"   # force CPU
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"   # hide info & warnings
+
+import tensorflow as tf
 
 
 def prepare_lstm_data(series, window_size=60):
-    """
+    """ 
     Prepare data for LSTM input.
     
     Args:

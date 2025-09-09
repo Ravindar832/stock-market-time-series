@@ -4,6 +4,9 @@ import os
 
 
 def load_stock_data(filepath):
+    df = load_stock_data("stock_data.csv")
+    df = clean_missing_data(df)
+    df = resample_data(df, freq="D")
     """
     Load stock market CSV data with 'Date' as datetime index.
 
