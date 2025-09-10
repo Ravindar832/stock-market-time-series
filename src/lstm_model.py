@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from keras.models import Sequential
 from keras.layers import LSTM, Dense
 from sklearn.preprocessing import MinMaxScaler
@@ -77,3 +78,38 @@ def forecast_lstm(model, last_sequence, steps, scaler):
         input_seq = np.append(input_seq[:, 1:, :], [[[next_pred]]], axis=1)
 
     return scaler.inverse_transform(np.array(predictions).reshape(-1, 1))
+
+if __name__ == "__main__":
+    # Load stock dataset (CSV should have a 'Date' and 'Close' column)
+    df = pd.read_csv('../Data/stock_data.csv')   # <-- replace with your CSV file path
+    print(df.head())
+
+    # Use closing price
+    close_prices = df['Close'].values
+
+    # Prepare data
+    window_size = 60
+    X, y, scaler = prepare_lstm_data(close_prices, window_size=window_size)
+
+    # Train/test split (80/20)
+    split_idx = int(0.8 * len(X))
+    X_train, X_test = X[:split_idx], X[split_idx:]
+    y_train, y_test = y[:split_idx], y[split_idx:]
+
+    # Build model
+    model = build_lstm_model((X_train.shape[1], 1))
+
+    # Train
+    model.fit(X_train, y_train, epochs=20, batch_size=32, verbose=1)
+
+    # Evaluate
+    loss = model.evaluate(X_test, y_test, verbose=0)
+    print(f"Test Loss (MSE): {loss:.6f}")
+
+    # Forecast next 30 days
+    last_sequence = X[-1:].copy()  # last known sequence
+    predictions = forecast_lstm(model, last_sequence, steps=30, scaler=scaler)
+
+    print("Next 30 day forecast:")
+    print(predictions)
+
