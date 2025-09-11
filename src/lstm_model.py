@@ -81,7 +81,7 @@ def forecast_lstm(model, last_sequence, steps, scaler):
 
 if __name__ == "__main__":
     # Load stock dataset (CSV should have a 'Date' and 'Close' column)
-    df = pd.read_csv('../Data/stock_data.csv')   # <-- replace with your CSV file path
+    df = pd.read_csv('../Data/stock_data.csv')   #
     print(df.head())
 
     # Use closing price
