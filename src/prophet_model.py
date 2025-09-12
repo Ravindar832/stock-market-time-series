@@ -69,3 +69,30 @@ def evaluate_forecast(true_values, predicted_values):
         "MAE": round(mae, 4),
         "R2": round(r2, 4)
     }
+# ========== MAIN SCRIPT ==========
+if __name__ == "__main__":
+    
+    df = pd.read_csv("../Data/stock_data.csv")
+    print(df.head())
+    
+     # Prepare data for Prophet: rename columns to 'ds' and 'y'
+    prophet_df = df[['Date', 'Close']].copy()
+    prophet_df.rename(columns={'Date': 'ds', 'Close': 'y'}, inplace=True)
+
+    # Split train/test (80/20)
+    split_idx = int(len(prophet_df) * 0.8)
+    train_df, test_df = prophet_df.iloc[:split_idx], prophet_df.iloc[split_idx:]
+
+    # Train Prophet
+    forecast, model = train_prophet_model(train_df, steps=len(test_df))
+
+    # Evaluate on test set
+    # Align forecast with test period
+    forecast_test = forecast.set_index('ds').loc[test_df['ds']]
+    metrics = evaluate_forecast(test_df['y'], forecast_test['yhat'])
+    print("\n Prophet Evaluation Metrics:", metrics)
+
+    # Forecast future 30 steps
+    full_forecast, _ = train_prophet_model(prophet_df, steps=30)
+    future_predictions = full_forecast.tail(30)[['ds', 'yhat']]
+    print("\n🔮 Prophet Next 30-Day Forecast:\n", future_predictions)
