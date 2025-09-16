@@ -3,6 +3,7 @@ import pandas as pd
 from keras.models import Sequential
 from keras.layers import LSTM, Dense
 from sklearn.preprocessing import MinMaxScaler
+import matplotlib.pyplot as plt
 
 import os
 
@@ -106,10 +107,31 @@ if __name__ == "__main__":
     loss = model.evaluate(X_test, y_test, verbose=0)
     print(f"Test Loss (MSE): {loss:.6f}")
 
+    # Make predictions on test set
+    y_pred_scaled = model.predict(X_test)
+    y_pred = scaler.inverse_transform(y_pred_scaled)
+    y_actual = scaler.inverse_transform(y_test.reshape(-1, 1))
+
     # Forecast next 30 days
     last_sequence = X[-1:].copy()  # last known sequence
     predictions = forecast_lstm(model, last_sequence, steps=30, scaler=scaler)
 
     print("Next 30 day forecast:")
     print(predictions)
+    
+    plt.figure(figsize=(12, 5))
+   
+    plt.plot(range(len(y_actual)), y_actual, label="Actual (Test)", color="blue")
+    plt.plot(range(len(y_pred)), y_pred, label="Predicted (Test)", color="orange")
+
+   
+    forecast_x = range(len(y_actual), len(y_actual) + len(predictions))
+    plt.plot(forecast_x, predictions, label="30-day Forecast", color="red", linestyle="--")
+
+    plt.title("LSTM Model: Actual vs Predicted + Forecast")
+    plt.xlabel("Time Steps")
+    plt.ylabel("Price")
+    plt.legend()
+    plt.savefig("../reports/lstm_forecast.png")  
+    plt.close()
 

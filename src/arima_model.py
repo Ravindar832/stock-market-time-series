@@ -2,6 +2,8 @@ import pandas as pd
 from statsmodels.tsa.arima.model import ARIMA
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import numpy as np
+import matplotlib.pyplot as plt
+import os  
 
 def train_arima_model(series, order=(5, 1, 0), steps=30):
     """
@@ -44,8 +46,6 @@ def evaluate_forecast(true_values, predicted_values):
 import os
 import numpy as np
 import pandas as pd
-from keras.models import Sequential
-from keras.layers import LSTM, Dense
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from statsmodels.tsa.arima.model import ARIMA
@@ -53,43 +53,6 @@ from statsmodels.tsa.arima.model import ARIMA
 # Force CPU & suppress TF logs
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
-
-
-# ========== LSTM Utilities ==========
-def prepare_lstm_data(series, window_size=60):
-    scaler = MinMaxScaler(feature_range=(0, 1))
-    scaled_data = scaler.fit_transform(np.array(series).reshape(-1, 1))
-
-    X, y = [], []
-    for i in range(window_size, len(scaled_data)):
-        X.append(scaled_data[i - window_size:i, 0])
-        y.append(scaled_data[i, 0])
-
-    X, y = np.array(X), np.array(y)
-    X = np.reshape(X, (X.shape[0], X.shape[1], 1))
-    return X, y, scaler
-
-
-def build_lstm_model(input_shape):
-    model = Sequential([
-        LSTM(units=50, return_sequences=True, input_shape=input_shape),
-        LSTM(units=50),
-        Dense(1)
-    ])
-    model.compile(optimizer='adam', loss='mean_squared_error')
-    return model
-
-
-def forecast_lstm(model, last_sequence, steps, scaler):
-    predictions = []
-    input_seq = last_sequence.copy()
-
-    for _ in range(steps):
-        next_pred = model.predict(input_seq, verbose=0)[0][0]
-        predictions.append(next_pred)
-        input_seq = np.append(input_seq[:, 1:, :], [[[next_pred]]], axis=1)
-
-    return scaler.inverse_transform(np.array(predictions).reshape(-1, 1))
 
 
 # ========== ARIMA Utilities ==========
@@ -130,3 +93,14 @@ if __name__ == "__main__":
     # Forecast future 30 steps ahead
     full_forecast, _ = train_arima_model(series, order=(5, 1, 0), steps=30)
     print("\n ARIMA Next 30-Day Forecast:\n", full_forecast.values)
+    
+    plt.figure(figsize=(12,5))
+    plt.plot(series.index, series, label="Actual", color="blue")
+    plt.plot(test.index, forecast, label="ARIMA Forecast", color="red")
+    plt.title("ARIMA Model Forecast")
+    plt.xlabel("Time")
+    plt.ylabel("Price")
+    plt.legend()
+    plt.savefig("arima_forecast.png")
+    plt.savefig("../reports/arima_forecast.png")  
+    plt.close()
